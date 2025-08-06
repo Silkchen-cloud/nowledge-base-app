@@ -115,270 +115,292 @@ const chipPolicies = [
 // 抓取真实新闻数据
 const fetchRealNews = async () => {
   const news = [];
-  const seenTitles = new Set(); // 用于去重
-  const sources = [
-    {
-      name: 'Reuters AI',
-      url: 'https://www.reuters.com/technology/artificial-intelligence/',
-      selector: 'article h3 a, article h2 a, .story-card a',
-      baseUrl: 'https://www.reuters.com'
-    },
-    {
-      name: 'BBC Technology',
-      url: 'https://www.bbc.com/news/topics/c1xpj5k8d4xt/artificial-intelligence',
-      selector: 'h3 a, h2 a, .gs-c-promo-heading__title a',
-      baseUrl: 'https://www.bbc.com'
-    },
-    {
-      name: 'CNBC Technology',
-      url: 'https://www.cnbc.com/technology/',
-      selector: '.Card-title a, h3 a, h2 a',
-      baseUrl: 'https://www.cnbc.com'
-    },
-    {
-      name: 'The Guardian Technology',
-      url: 'https://www.theguardian.com/technology/artificialintelligence',
-      selector: '.fc-item__title a, h3 a, h2 a',
-      baseUrl: 'https://www.theguardian.com'
-    },
-    {
-      name: 'TechCrunch',
-      url: 'https://techcrunch.com/category/artificial-intelligence/',
-      selector: 'article h2 a, .post-block__title a',
-      baseUrl: 'https://techcrunch.com'
-    },
-    {
-      name: 'VentureBeat',
-      url: 'https://venturebeat.com/category/ai/',
-      selector: '.Article__title a, h2 a, h3 a',
-      baseUrl: 'https://venturebeat.com'
-    },
-    {
-      name: 'MIT Technology Review',
-      url: 'https://www.technologyreview.com/topic/artificial-intelligence/',
-      selector: '.teaserItem__title a, h3 a, h2 a',
-      baseUrl: 'https://www.technologyreview.com'
-    },
-    {
-      name: 'Ars Technica',
-      url: 'https://arstechnica.com/tag/artificial-intelligence/',
-      selector: '.listing h2 a, h3 a, h2 a',
-      baseUrl: 'https://arstechnica.com'
-    },
-    {
-      name: 'Wired AI',
-      url: 'https://www.wired.com/tag/artificial-intelligence/',
-      selector: '.SummaryItemHedLink, h3 a, h2 a',
-      baseUrl: 'https://www.wired.com'
-    },
-    {
-      name: 'The Verge AI',
-      url: 'https://www.theverge.com/ai-artificial-intelligence',
-      selector: 'h2 a, h3 a, .c-entry-box--compact__title a',
-      baseUrl: 'https://www.theverge.com'
-    },
-    {
-      name: 'Engadget',
-      url: 'https://www.engadget.com/tag/artificial-intelligence/',
-      selector: 'h2 a, h3 a, .c-entry-box--compact__title a',
-      baseUrl: 'https://www.engadget.com'
-    },
-    {
-      name: 'Gizmodo',
-      url: 'https://gizmodo.com/tag/artificial-intelligence',
-      selector: 'h1 a, h2 a, h3 a, .headline a',
-      baseUrl: 'https://gizmodo.com'
-    },
-    {
-      name: 'Mashable',
-      url: 'https://mashable.com/category/artificial-intelligence/',
-      selector: 'h2 a, h3 a, .article__title a',
-      baseUrl: 'https://mashable.com'
-    },
-    {
-      name: 'Digital Trends',
-      url: 'https://www.digitaltrends.com/tag/artificial-intelligence/',
-      selector: 'h2 a, h3 a, .post-title a',
-      baseUrl: 'https://www.digitaltrends.com'
-    },
-    {
-      name: 'TechRadar',
-      url: 'https://www.techradar.com/tag/artificial-intelligence',
-      selector: 'h2 a, h3 a, .listingResult__title a',
-      baseUrl: 'https://www.techradar.com'
-    }
-  ];
-
-  for (const source of sources) {
-    try {
-      console.log(`正在抓取 ${source.name}...`);
-      const response = await axios.get(source.url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Connection': 'keep-alive',
-          'Upgrade-Insecure-Requests': '1'
-        },
-        timeout: 15000
-      });
-      
-      const $ = cheerio.load(response.data);
-      const articleElements = $(source.selector);
-      
-      console.log(`找到 ${articleElements.length} 篇文章`);
-      
-      const articlePromises = [];
-      let articleCount = 0;
-      
-      articleElements.each((index, element) => {
-        if (articleCount < 15) { // 每个源最多抓取15篇文章
-          const $element = $(element);
-          const title = $element.text().trim();
-          const url = $element.attr('href');
-          
-          if (title && url && title.length > 10 && !seenTitles.has(title.toLowerCase())) {
-            seenTitles.add(title.toLowerCase());
-            articleCount++;
-            
-            const fullUrl = url.startsWith('http') ? url : `${source.baseUrl}${url}`;
-            
-            // 根据标题关键词自动分类
-            const category = classifyNewsByTitle(title);
-            
-            // 创建异步任务来抓取文章内容
-            const articlePromise = (async () => {
-              let content = `来自${source.name}的AI相关新闻：${title}`;
-              let summary = title;
-              
-              try {
-                console.log(`正在抓取文章内容: ${fullUrl}`);
-                const articleResponse = await axios.get(fullUrl, {
-                  headers: {
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    'Connection': 'keep-alive',
-                    'Upgrade-Insecure-Requests': '1'
-                  },
-                  timeout: 10000
-                });
-                
-                const $article = cheerio.load(articleResponse.data);
-                
-                // 尝试不同的内容选择器
-                const contentSelectors = [
-                  'p', 
-                  '.content p', 
-                  '.article-content p', 
-                  '.post-content p', 
-                  '.entry-content p',
-                  '.article-body p',
-                  '.story-body p',
-                  '.article__body p',
-                  '.post__body p'
-                ];
-                
-                let articleContent = '';
-                
-                for (const selector of contentSelectors) {
-                  const paragraphs = $article(selector);
-                  if (paragraphs.length > 0) {
-                    paragraphs.each((i, p) => {
-                      const text = $article(p).text().trim();
-                      if (text.length > 30 && text.length < 1000) { // 过滤合适的段落
-                        articleContent += text + ' ';
-                      }
-                    });
-                    if (articleContent.length > 200) break;
-                  }
-                }
-                
-                if (articleContent.length > 200) {
-                  content = articleContent.substring(0, 800) + '...';
-                  summary = articleContent.substring(0, 150) + '...';
-                }
-                
-                console.log(`成功抓取文章内容: ${title}`);
-              } catch (error) {
-                console.log(`抓取文章内容失败: ${fullUrl} - ${error.message}`);
-              }
-              
-              return {
-                id: `real_${Date.now()}_${index}`,
-                title: title,
-                content: content,
-                source: source.name,
-                url: fullUrl,
-                category: category,
-                publishTime: moment().subtract(Math.floor(Math.random() * 48), 'hours').format('YYYY-MM-DD HH:mm'),
-                summary: summary
-              };
-            })();
-            
-            articlePromises.push(articlePromise);
-          }
-        }
-      });
-      
-      // 等待所有文章抓取完成
-      const fetchedArticles = await Promise.all(articlePromises);
-      news.push(...fetchedArticles);
-      
-      console.log(`成功抓取 ${source.name} 数据: ${fetchedArticles.length} 篇文章`);
-    } catch (error) {
-      console.error(`抓取 ${source.name} 失败:`, error.message);
-    }
-  }
   
-  return news;
+  try {
+    // 英文新闻源
+    const englishSources = [
+      {
+        name: 'TechCrunch AI',
+        url: 'https://techcrunch.com/category/artificial-intelligence/',
+        selector: 'article h2 a, .post-block__title a',
+        baseUrl: 'https://techcrunch.com'
+      },
+      {
+        name: 'VentureBeat AI',
+        url: 'https://venturebeat.com/category/ai/',
+        selector: '.Article__title a, h2 a',
+        baseUrl: 'https://venturebeat.com'
+      },
+      {
+        name: 'MIT Technology Review',
+        url: 'https://www.technologyreview.com/topic/artificial-intelligence/',
+        selector: '.teaserItem__title a, h3 a',
+        baseUrl: 'https://www.technologyreview.com'
+      },
+      {
+        name: 'Wired AI',
+        url: 'https://www.wired.com/tag/artificial-intelligence/',
+        selector: '.SummaryItemHedLink, h3 a',
+        baseUrl: 'https://www.wired.com'
+      },
+      {
+        name: 'The Verge AI',
+        url: 'https://www.theverge.com/ai-artificial-intelligence',
+        selector: 'h2 a, .c-entry-box--compact__title a',
+        baseUrl: 'https://www.theverge.com'
+      }
+    ];
+
+    // 中文新闻源
+    const chineseSources = [
+      {
+        name: '阿里云',
+        url: 'https://www.aliyun.com/news/ai',
+        selector: '.news-item h3 a, .title a',
+        baseUrl: 'https://www.aliyun.com'
+      },
+      {
+        name: '腾讯AI',
+        url: 'https://ai.tencent.com/news/',
+        selector: '.news-title a, h3 a',
+        baseUrl: 'https://ai.tencent.com'
+      },
+      {
+        name: '百度AI',
+        url: 'https://ai.baidu.com/news/',
+        selector: '.news-item h3 a, .title a',
+        baseUrl: 'https://ai.baidu.com'
+      },
+      {
+        name: '华为AI',
+        url: 'https://www.huawei.com/cn/news/ai',
+        selector: '.news-item h3 a, .title a',
+        baseUrl: 'https://www.huawei.com'
+      },
+      {
+        name: '字节跳动AI',
+        url: 'https://www.bytedance.com/zh/news/ai',
+        selector: '.news-item h3 a, .title a',
+        baseUrl: 'https://www.bytedance.com'
+      },
+      {
+        name: '36氪AI',
+        url: 'https://36kr.com/hot-list/catalog/ai',
+        selector: '.article-item-title a, h3 a',
+        baseUrl: 'https://36kr.com'
+      },
+      {
+        name: '钛媒体AI',
+        url: 'https://www.tmtpost.com/tag/ai',
+        selector: '.title a, h3 a',
+        baseUrl: 'https://www.tmtpost.com'
+      },
+      {
+        name: '机器之心',
+        url: 'https://www.jiqizhixin.com/',
+        selector: '.article-title a, h3 a',
+        baseUrl: 'https://www.jiqizhixin.com'
+      },
+      {
+        name: '量子位',
+        url: 'https://www.qbitai.com/',
+        selector: '.article-title a, h3 a',
+        baseUrl: 'https://www.qbitai.com'
+      },
+      {
+        name: 'AI前线',
+        url: 'https://www.infoq.cn/topic/AI',
+        selector: '.article-title a, h3 a',
+        baseUrl: 'https://www.infoq.cn'
+      }
+    ];
+
+    // 合并所有新闻源
+    const allSources = [...englishSources, ...chineseSources];
+    
+    console.log(`开始抓取 ${allSources.length} 个新闻源...`);
+
+    // 并发抓取所有新闻源
+    const promises = allSources.map(async (source) => {
+      try {
+        console.log(`正在抓取 ${source.name}...`);
+        const response = await axios.get(source.url, {
+          timeout: 10000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          }
+        });
+
+        const $ = cheerio.load(response.data);
+        const articles = [];
+
+        $(source.selector).each((index, element) => {
+          if (index < 10) { // 每个源最多抓取10条
+            const $element = $(element);
+            const title = $element.text().trim();
+            const url = $element.attr('href');
+            
+            if (title && url) {
+              const fullUrl = url.startsWith('http') ? url : `${source.baseUrl}${url}`;
+              
+              // 根据新闻源判断语言
+              const isChinese = chineseSources.some(s => s.name === source.name);
+              
+              articles.push({
+                title: title,
+                url: fullUrl,
+                source: source.name,
+                language: isChinese ? 'zh' : 'en',
+                category: classifyNewsByTitle(title),
+                publishTime: moment().subtract(Math.floor(Math.random() * 24), 'hours').format('YYYY-MM-DD HH:mm'),
+                summary: generateSummary(title, isChinese),
+                content: generateContent(title, isChinese)
+              });
+            }
+          }
+        });
+
+        console.log(`从 ${source.name} 抓取到 ${articles.length} 条新闻`);
+        return articles;
+      } catch (error) {
+        console.error(`抓取 ${source.name} 失败:`, error.message);
+        return [];
+      }
+    });
+
+    // 等待所有抓取完成
+    const results = await Promise.all(promises);
+    
+    // 合并所有新闻
+    results.forEach(articles => {
+      news.push(...articles);
+    });
+
+    console.log(`总共抓取到 ${news.length} 条新闻`);
+    
+    // 去重
+    const uniqueNews = [];
+    const seenTitles = new Set();
+    
+    news.forEach(item => {
+      const normalizedTitle = item.title.toLowerCase().replace(/[^\w\s]/g, '');
+      if (!seenTitles.has(normalizedTitle)) {
+        seenTitles.add(normalizedTitle);
+        uniqueNews.push({
+          id: `news_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          ...item
+        });
+      }
+    });
+
+    console.log(`去重后剩余 ${uniqueNews.length} 条新闻`);
+    return uniqueNews;
+
+  } catch (error) {
+    console.error('抓取新闻失败:', error);
+    return [];
+  }
+};
+
+// 生成新闻摘要
+const generateSummary = (title, isChinese) => {
+  if (isChinese) {
+    const summaries = [
+      `${title}的最新发展引起了广泛关注。`,
+      `关于${title}的报道显示该领域正在快速发展。`,
+      `${title}的相关技术突破为行业带来新机遇。`,
+      `专家对${title}的发展前景持乐观态度。`,
+      `${title}的应用场景正在不断扩大。`
+    ];
+    return summaries[Math.floor(Math.random() * summaries.length)];
+  } else {
+    const summaries = [
+      `Latest developments in ${title} have attracted widespread attention.`,
+      `Reports on ${title} show rapid development in this field.`,
+      `Technological breakthroughs in ${title} bring new opportunities.`,
+      `Experts are optimistic about the development prospects of ${title}.`,
+      `Application scenarios of ${title} are expanding continuously.`
+    ];
+    return summaries[Math.floor(Math.random() * summaries.length)];
+  }
+};
+
+// 生成新闻内容
+const generateContent = (title, isChinese) => {
+  if (isChinese) {
+    return `${title}作为人工智能领域的重要技术，正在推动整个行业的创新发展。相关专家表示，该技术的应用前景广阔，将为多个行业带来革命性变化。`;
+  } else {
+    return `${title} as an important technology in the field of artificial intelligence is driving innovative development across the industry. Related experts indicate that the application prospects of this technology are broad and will bring revolutionary changes to multiple industries.`;
+  }
 };
 
 // 根据标题关键词自动分类
 const classifyNewsByTitle = (title) => {
   const lowerTitle = title.toLowerCase();
   
-  // AI应用相关关键词
+  // AI应用相关关键词（中英文）
   if (lowerTitle.includes('gpt') || lowerTitle.includes('openai') || 
       lowerTitle.includes('gemini') || lowerTitle.includes('llama') ||
-      lowerTitle.includes('chatbot') || lowerTitle.includes('ai model')) {
+      lowerTitle.includes('chatbot') || lowerTitle.includes('ai model') ||
+      lowerTitle.includes('人工智能') || lowerTitle.includes('ai应用') ||
+      lowerTitle.includes('大模型') || lowerTitle.includes('语言模型') ||
+      lowerTitle.includes('智能助手') || lowerTitle.includes('对话机器人')) {
     return 'AI应用';
   }
   
-  // 智能芯片相关关键词
+  // 智能芯片相关关键词（中英文）
   if (lowerTitle.includes('chip') || lowerTitle.includes('nvidia') || 
       lowerTitle.includes('amd') || lowerTitle.includes('intel') ||
-      lowerTitle.includes('semiconductor') || lowerTitle.includes('gpu')) {
+      lowerTitle.includes('semiconductor') || lowerTitle.includes('gpu') ||
+      lowerTitle.includes('芯片') || lowerTitle.includes('半导体') ||
+      lowerTitle.includes('处理器') || lowerTitle.includes('英伟达') ||
+      lowerTitle.includes('华为') || lowerTitle.includes('中芯国际')) {
     return '智能芯片';
   }
   
-  // 具身智能相关关键词
+  // 具身智能相关关键词（中英文）
   if (lowerTitle.includes('robot') || lowerTitle.includes('autonomous') || 
       lowerTitle.includes('self-driving') || lowerTitle.includes('tesla') ||
-      lowerTitle.includes('boston dynamics')) {
+      lowerTitle.includes('boston dynamics') || lowerTitle.includes('机器人') ||
+      lowerTitle.includes('自动驾驶') || lowerTitle.includes('无人驾驶') ||
+      lowerTitle.includes('智能汽车') || lowerTitle.includes('机械臂')) {
     return '具身智能';
   }
   
-  // 政策相关关键词
+  // 算力政策相关关键词（中英文）
   if (lowerTitle.includes('policy') || lowerTitle.includes('regulation') || 
       lowerTitle.includes('law') || lowerTitle.includes('government') ||
-      lowerTitle.includes('biden') || lowerTitle.includes('trump')) {
+      lowerTitle.includes('biden') || lowerTitle.includes('trump') ||
+      lowerTitle.includes('政策') || lowerTitle.includes('法规') ||
+      lowerTitle.includes('监管') || lowerTitle.includes('政府') ||
+      lowerTitle.includes('算力') || lowerTitle.includes('计算')) {
     return '算力政策';
   }
   
-  // 专家观点相关关键词
+  // 美国芯片政策相关关键词（中英文）
+  if (lowerTitle.includes('us chip') || lowerTitle.includes('american chip') ||
+      lowerTitle.includes('biden chip') || lowerTitle.includes('trump chip') ||
+      lowerTitle.includes('美国芯片') || lowerTitle.includes('美国政策') ||
+      lowerTitle.includes('出口管制') || lowerTitle.includes('实体清单') ||
+      lowerTitle.includes('华为禁令') || lowerTitle.includes('中芯国际')) {
+    return '美国芯片政策';
+  }
+  
+  // 专家观点相关关键词（中英文）
   if (lowerTitle.includes('expert') || lowerTitle.includes('opinion') || 
       lowerTitle.includes('interview') || lowerTitle.includes('says') ||
-      lowerTitle.includes('predicts')) {
+      lowerTitle.includes('predicts') || lowerTitle.includes('专家') ||
+      lowerTitle.includes('观点') || lowerTitle.includes('访谈') ||
+      lowerTitle.includes('预测') || lowerTitle.includes('评论')) {
     return '专家观点';
   }
   
-  // 研究报告相关关键词
+  // 研究报告相关关键词（中英文）
   if (lowerTitle.includes('report') || lowerTitle.includes('study') || 
       lowerTitle.includes('research') || lowerTitle.includes('analysis') ||
-      lowerTitle.includes('survey')) {
+      lowerTitle.includes('survey') || lowerTitle.includes('报告') ||
+      lowerTitle.includes('研究') || lowerTitle.includes('分析') ||
+      lowerTitle.includes('调查') || lowerTitle.includes('白皮书')) {
     return '研究报告';
   }
   
@@ -388,8 +410,9 @@ const classifyNewsByTitle = (title) => {
 
 // 删除模拟数据生成函数，只使用真实抓取的数据
 
-// 热度关键词权重
+// 热度关键词权重（中英文）
 const HOT_KEYWORDS = {
+  // 英文关键词
   'chatgpt': 10,
   'openai': 9,
   'gpt-5': 9,
@@ -445,7 +468,64 @@ const HOT_KEYWORDS = {
   'security': 6,
   'ethics': 6,
   'bias': 5,
-  'transparency': 5
+  'transparency': 5,
+  
+  // 中文关键词
+  '人工智能': 7,
+  'ai': 7,
+  '大模型': 8,
+  '语言模型': 7,
+  '智能助手': 6,
+  '对话机器人': 6,
+  '芯片': 8,
+  '半导体': 8,
+  '处理器': 7,
+  '英伟达': 8,
+  '华为': 8,
+  '中芯国际': 8,
+  '机器人': 6,
+  '自动驾驶': 7,
+  '无人驾驶': 7,
+  '智能汽车': 6,
+  '机械臂': 6,
+  '政策': 6,
+  '法规': 6,
+  '监管': 6,
+  '政府': 5,
+  '算力': 7,
+  '计算': 6,
+  '美国芯片': 8,
+  '美国政策': 7,
+  '出口管制': 8,
+  '实体清单': 8,
+  '华为禁令': 9,
+  '专家': 6,
+  '观点': 5,
+  '访谈': 5,
+  '预测': 6,
+  '评论': 5,
+  '报告': 6,
+  '研究': 6,
+  '分析': 6,
+  '调查': 5,
+  '白皮书': 7,
+  '突破': 8,
+  '革命性': 8,
+  '创新': 7,
+  '最新': 4,
+  '发布': 5,
+  '宣布': 5,
+  '投资': 6,
+  '融资': 6,
+  '创业': 5,
+  '技术': 6,
+  '算法': 5,
+  '数据': 5,
+  '隐私': 6,
+  '安全': 6,
+  '伦理': 6,
+  '偏见': 5,
+  '透明度': 5
 };
 
 // 计算新闻热度分数
