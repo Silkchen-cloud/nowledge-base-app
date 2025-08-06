@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, List, Tag, Typography, Space, Button, message, Spin, Tooltip, Row, Col, Statistic, Empty } from "antd";
-import { FireOutlined, EyeOutlined, CalendarOutlined, TrophyOutlined, ReloadOutlined } from "@ant-design/icons";
+import { FireOutlined, EyeOutlined, CalendarOutlined, ReloadOutlined } from "@ant-design/icons";
 import axios from "axios";
 
 const { Title, Text, Paragraph } = Typography;
