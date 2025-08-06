@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { ConfigProvider, Layout, Menu } from "antd";
+import { ConfigProvider, Layout, Menu, Space, Button } from "antd";
 import { customTheme } from "./styles/theme";
 import TemplateSelect from "./pages/TemplateSelect";
 import KnowledgeBaseDetail from "./pages/KnowledgeBaseDetail";
 import HomePage from "./pages/HomePage";
-import { PlusOutlined, HomeOutlined } from "@ant-design/icons";
+import WeeklySummaryPage from "./pages/WeeklySummaryPage";
+import UserSettings from "./pages/UserSettings";
+import NotificationCenter from "./components/NotificationCenter";
+import { PlusOutlined, HomeOutlined, SettingOutlined, FireOutlined } from "@ant-design/icons";
 
 const { Header, Content } = Layout;
 
-type PageType = 'home' | 'templates' | 'detail';
+type PageType = 'home' | 'templates' | 'detail' | 'settings' | 'weekly';
 
 function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
@@ -34,6 +37,16 @@ function App() {
     setSelectedTemplate(null);
   };
 
+  const handleSettingsClick = () => {
+    setCurrentPage('settings');
+    setSelectedTemplate(null);
+  };
+
+  const handleWeeklyClick = () => {
+    setCurrentPage('weekly');
+    setSelectedTemplate(null);
+  };
+
   const renderContent = () => {
     switch (currentPage) {
       case 'home':
@@ -47,6 +60,10 @@ function App() {
             onBack={handleBack} 
           />
         ) : null;
+      case 'weekly':
+        return <WeeklySummaryPage />;
+      case 'settings':
+        return <UserSettings />;
       default:
         return <HomePage />;
     }
@@ -96,6 +113,12 @@ function App() {
                   onClick: handleHomeClick
                 },
                 {
+                  key: 'weekly',
+                  icon: <FireOutlined />,
+                  label: '每周要闻',
+                  onClick: handleWeeklyClick
+                },
+                {
                   key: 'templates',
                   icon: <PlusOutlined />,
                   label: '创建知识库',
@@ -103,6 +126,27 @@ function App() {
                 }
               ]}
             />
+            
+            <Space>
+              <NotificationCenter
+                notifications={[]}
+                onMarkAsRead={() => {}}
+                onMarkAllAsRead={() => {}}
+                onDeleteNotification={() => {}}
+              />
+              <Button
+                type="text"
+                icon={<SettingOutlined />}
+                onClick={handleSettingsClick}
+                style={{ 
+                  fontSize: 18, 
+                  color: currentPage === 'settings' ? '#1890ff' : '#666',
+                  height: 40,
+                  width: 40,
+                  borderRadius: '50%'
+                }}
+              />
+            </Space>
           </div>
         </Header>
         

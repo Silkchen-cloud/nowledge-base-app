@@ -80,7 +80,7 @@ const getMockData = (): NewsItem[] => {
       content: 'OpenAI今日宣布GPT-4 Turbo的重大更新，新版本在推理能力、代码生成和创意写作方面都有显著提升。同时降低了API调用成本，使更多开发者能够使用这一先进技术。',
       source: 'OpenAI官方博客',
       url: 'https://openai.com/blog/gpt-4-turbo-update',
-      category: '产品发布',
+      category: 'AI应用',
       publishTime: moment().subtract(2, 'hours').format('YYYY-MM-DD HH:mm'),
       summary: 'GPT-4 Turbo重大更新，性能提升成本降低'
     },
@@ -90,7 +90,7 @@ const getMockData = (): NewsItem[] => {
       content: '谷歌发布了Gemini Pro 1.5模型，该模型在长文本处理能力方面有重大突破，能够处理长达100万token的上下文。这为文档分析、代码审查等应用场景提供了新的可能性。',
       source: 'Google AI Blog',
       url: 'https://ai.google.dev/gemini-pro-1.5',
-      category: '技术突破',
+      category: 'AI应用',
       publishTime: moment().subtract(4, 'hours').format('YYYY-MM-DD HH:mm'),
       summary: 'Gemini Pro 1.5支持100万token长文本处理'
     },
@@ -100,7 +100,7 @@ const getMockData = (): NewsItem[] => {
       content: '随着AI应用的普及，AI芯片市场迎来新一轮投资热潮。英伟达、AMD、英特尔等巨头加大投入，同时涌现出多家专注于AI芯片的初创公司。预计2024年AI芯片市场规模将达到1000亿美元。',
       source: 'TechCrunch',
       url: 'https://techcrunch.com/ai-chip-investment',
-      category: '投资动态',
+      category: '智能芯片',
       publishTime: moment().subtract(6, 'hours').format('YYYY-MM-DD HH:mm'),
       summary: 'AI芯片市场投资热潮，预计2024年达1000亿美元'
     },
@@ -110,7 +110,7 @@ const getMockData = (): NewsItem[] => {
       content: '微软Azure AI服务推出新的多模态功能，支持图像、音频、视频等多种数据类型的统一处理。这将为开发者提供更强大的AI应用构建能力。',
       source: 'Microsoft Azure Blog',
       url: 'https://azure.microsoft.com/blog/multimodal-ai',
-      category: '产品发布',
+      category: 'AI应用',
       publishTime: moment().subtract(8, 'hours').format('YYYY-MM-DD HH:mm'),
       summary: 'Azure AI新增多模态功能，支持图像音频视频处理'
     },
@@ -120,7 +120,7 @@ const getMockData = (): NewsItem[] => {
       content: '最新研究显示，AI在医疗影像诊断方面的准确率已经超过人类专家。这一突破为早期疾病筛查和精准医疗提供了新的技术手段。',
       source: 'Nature Medicine',
       url: 'https://www.nature.com/articles/ai-medical-diagnosis',
-      category: '应用案例',
+      category: 'AI应用',
       publishTime: moment().subtract(10, 'hours').format('YYYY-MM-DD HH:mm'),
       summary: 'AI医疗诊断准确率超人类专家，助力精准医疗'
     }
@@ -129,13 +129,13 @@ const getMockData = (): NewsItem[] => {
 
 export const getCategories = (): Category[] => {
   return [
-    { id: 'product', name: '产品发布', icon: '🚀', count: 0 },
-    { id: 'tech', name: '技术突破', icon: '⚡', count: 0 },
-    { id: 'investment', name: '投资动态', icon: '💰', count: 0 },
-    { id: 'application', name: '应用案例', icon: '🔬', count: 0 },
-    { id: 'policy', name: '政策法规', icon: '📋', count: 0 },
-    { id: 'research', name: '研究报告', icon: '📊', count: 0 },
-    { id: 'expert', name: '专家观点', icon: '🧠', count: 0 }
+    { id: 'ai-application', name: 'AI应用', icon: '🤖', count: 0 },
+    { id: 'smart-chip', name: '智能芯片', icon: '🔧', count: 0 },
+    { id: 'embodied-ai', name: '具身智能', icon: '🦾', count: 0 },
+    { id: 'computing-policy', name: '算力政策', icon: '📋', count: 0 },
+    { id: 'us-chip-policy', name: '美国芯片政策', icon: '🇺🇸', count: 0 },
+    { id: 'expert-opinion', name: '专家观点', icon: '🧠', count: 0 },
+    { id: 'research-report', name: '研究报告', icon: '📊', count: 0 }
   ];
 };
 
