@@ -21,7 +21,7 @@ export interface Category {
 
 // 根据环境选择API地址
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.REACT_APP_API_URL || 'https://your-railway-app.railway.app/api')
+  ? (process.env.REACT_APP_API_URL || 'https://nowledge-base-app-5vox-silkchen-clouds-projects.vercel.app/api')
   : 'http://localhost:3001/api';
 
 // 从后端API获取最新AI新闻
