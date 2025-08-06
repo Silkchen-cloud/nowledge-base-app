@@ -38,7 +38,7 @@ const WeeklySummary: React.FC = () => {
   const fetchWeeklySummary = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:3001/api/weekly-summary');
+      const response = await axios.get('/api/weekly-summary');
       if (response.data.success) {
         setWeeklyData(response.data.data);
       } else {

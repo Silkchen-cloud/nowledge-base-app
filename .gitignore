@@ -61,3 +61,6 @@ jspm_packages/
 
 # Server data
 server/data/
+
+# Local Netlify folder
+.netlify
